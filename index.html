@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Portfolio website for Serra Alaca, a London-based game developer, designer, and software engineer."
+    >
+    <title>Serra Alaca | Game Developer & Designer</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <canvas id="signal-canvas" aria-hidden="true"></canvas>
+    <div class="scanline" aria-hidden="true"></div>
+
+    <div class="site-shell">
+      <header class="site-header" aria-label="Primary navigation">
+        <a class="brand" href="#top" aria-label="Serra Alaca home">
+          <span class="brand-mark">SA</span>
+          <span class="brand-text">Serra Alaca</span>
+        </a>
+
+        <nav class="nav-links" aria-label="Sections">
+          <a href="#skills">Skills</a>
+          <a href="#experience">Experience</a>
+          <a href="#education">Education</a>
+          <a href="#contact">Contact</a>
+        </nav>
+
+        <div class="header-actions" aria-label="External links">
+          <a class="icon-link" href="https://github.com/Mucchun" aria-label="GitHub" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2.7a9.3 9.3 0 0 0-2.9 18.1c.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.2-3.4-1.2-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 0 1.6 1 1.6 1 .9 1.5 2.3 1.1 2.8.8.1-.6.3-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-4.9 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 4.9 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.8-2.3 4.6-4.6 4.9.4.3.7 1 .7 2v2.9c0 .3.2.6.7.5A9.3 9.3 0 0 0 12 2.7Z"/>
+            </svg>
+          </a>
+          <a class="icon-link" href="https://serraalaca6.artstation.com" aria-label="ArtStation" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3.6 15.2 6 19.3c.3.6 1 .9 1.7.9h9.9l-2.9-5H3.6Zm17.2.1L13.2 2.2 10.3 7l5.9 10.2h2.9c1.5 0 2.4-1.6 1.7-2.9ZM8.9 9.3 6 14.3h7.3l-2.9-5H8.9Z"/>
+            </svg>
+          </a>
+          <a class="icon-link" href="mailto:alaca.serra@gmail.com" aria-label="Email Serra">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4.6 6.2h14.8c1 0 1.8.8 1.8 1.8v8c0 1-.8 1.8-1.8 1.8H4.6c-1 0-1.8-.8-1.8-1.8V8c0-1 .8-1.8 1.8-1.8Zm.2 2 7.2 5.1 7.2-5.1H4.8Zm14.4 7.6v-5.4l-6.7 4.7a.9.9 0 0 1-1 0l-6.7-4.7v5.4h14.4Z"/>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <main id="top">
+        <section class="hero section-band" aria-labelledby="hero-title">
+          <div class="hero-copy" data-reveal>
+            <p class="eyebrow">Central London, UK / Real-time systems / Game worlds</p>
+            <h1 id="hero-title">Serra Alaca</h1>
+            <p class="role-line">Game Developer / Designer / Software Engineer</p>
+            <p class="hero-lede">
+              Junior developer and multidisciplinary designer building gameplay systems, immersive environments,
+              3D assets, UI/UX flows, VFX, cinematics, and interactive digital experiences.
+            </p>
+
+            <div class="hero-actions">
+              <a class="button button-primary" href="#contact">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12h12.2l-4.6-4.6L14 6l7 7-7 7-1.4-1.4 4.6-4.6H5v-2Z"/>
+                </svg>
+                Contact
+              </a>
+              <a class="button button-ghost" href="mailto:alaca.serra@gmail.com?subject=CV%20request%20from%20portfolio">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 2.8h8.2L19 7.6v13.6H6V2.8Zm7.3 1.9V8.5h3.8l-3.8-3.8ZM8 4.8v14.4h9V10.5h-5.7V4.8H8Zm2 9.4h5v1.7h-5v-1.7Zm0-3.2h5v1.7h-5V11Z"/>
+                </svg>
+                Request CV
+              </a>
+            </div>
+
+            <ul class="signal-list" aria-label="Career highlights">
+              <li>
+                <span>01</span>
+                <strong>First Class Honours</strong>
+                <small>BA Video Games, Art and Design</small>
+              </li>
+              <li>
+                <span>02</span>
+                <strong>MSc Computer Science</strong>
+                <small>Queen Mary University of London</small>
+              </li>
+              <li>
+                <span>03</span>
+                <strong>Women in Games</strong>
+                <small>Ambassador, 2026-present</small>
+              </li>
+            </ul>
+          </div>
+
+          <div class="hero-visual" aria-label="Animated CV and skill visual" data-reveal>
+            <div class="artifact-stage">
+              <div class="vector-grid" aria-hidden="true"></div>
+              <figure class="cv-preview cv-preview-one">
+                <img src="assets/cv-page-1.png" alt="First page of Serra Alaca's CV">
+              </figure>
+              <figure class="cv-preview cv-preview-two">
+                <img src="assets/cv-page-2.png" alt="Second page of Serra Alaca's CV">
+              </figure>
+
+              <div class="skill-console" aria-label="Core capability console">
+                <div>
+                  <span>ENGINE</span>
+                  <strong>Unreal / Unity</strong>
+                </div>
+                <div>
+                  <span>CODE</span>
+                  <strong>C# / C++ / JS / TS</strong>
+                </div>
+                <div>
+                  <span>ART</span>
+                  <strong>Maya / ZBrush / VFX</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section-band overview" aria-label="Portfolio focus">
+          <div class="section-kicker">Portfolio Focus</div>
+          <div class="overview-grid">
+            <article class="focus-tile" data-reveal>
+              <span class="tile-index">A</span>
+              <h2>Gameplay Engineering</h2>
+              <p>C#, C++, JavaScript, TypeScript, Blueprints, SQL, Python, gameplay programming, backend collaboration, and real-time systems.</p>
+            </article>
+            <article class="focus-tile" data-reveal>
+              <span class="tile-index">B</span>
+              <h2>Game Art Direction</h2>
+              <p>Advanced 3D modelling, character and asset creation, texturing, rigging, cinematics, VFX, and concept art.</p>
+            </article>
+            <article class="focus-tile" data-reveal>
+              <span class="tile-index">C</span>
+              <h2>Interactive Design</h2>
+              <p>UI/UX, virtual production, level building, storyboards, digital design, and immersive experience design.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="skills" class="section-band split-section" aria-labelledby="skills-title">
+          <div class="section-heading" data-reveal>
+            <p class="section-kicker">Skill Matrix</p>
+            <h2 id="skills-title">A hybrid builder across code, engines, and cinematic production.</h2>
+          </div>
+
+          <div class="matrix-grid" data-reveal>
+            <div class="matrix-row" style="--value: 84%">
+              <span>Programming</span>
+              <strong>Python, JavaScript, TypeScript, SQL, HTML, C++, C#, Blueprints</strong>
+              <i></i>
+            </div>
+            <div class="matrix-row" style="--value: 92%">
+              <span>Engines</span>
+              <strong>Unreal Engine, Unity</strong>
+              <i></i>
+            </div>
+            <div class="matrix-row" style="--value: 88%">
+              <span>3D & Art</span>
+              <strong>Maya 2025, ZBrush, Marmoset Toolbag, Adobe</strong>
+              <i></i>
+            </div>
+            <div class="matrix-row" style="--value: 78%">
+              <span>Production</span>
+              <strong>DaVinci Resolve, Figma, Visual Studio, Oracle SQL</strong>
+              <i></i>
+            </div>
+          </div>
+        </section>
+
+        <section id="experience" class="section-band experience-section" aria-labelledby="experience-title">
+          <div class="section-heading" data-reveal>
+            <p class="section-kicker">Experience</p>
+            <h2 id="experience-title">Technical, creative, media, and research work across game-adjacent teams.</h2>
+          </div>
+
+          <div class="timeline">
+            <article class="timeline-item" data-reveal>
+              <time>Jun 2025 - Sep 2025</time>
+              <div>
+                <h3>Technical Intern / Luna Group Technologies</h3>
+                <p>Assisted software, hardware, and technical work across projects, presented ideas, and worked with backend developers.</p>
+              </div>
+            </article>
+            <article class="timeline-item" data-reveal>
+              <time>Jan 2026 - Present</time>
+              <div>
+                <h3>Women in Games Ambassador</h3>
+                <p>Supports initiatives for inclusion, representation, and opportunity in the games industry.</p>
+              </div>
+            </article>
+            <article class="timeline-item" data-reveal>
+              <time>2021</time>
+              <div>
+                <h3>Animation, Product, and Technology Internships</h3>
+                <p>Worked with 23 Animations, Blu TV, and LG Electronics across animation concepting, product research, and marketing design.</p>
+              </div>
+            </article>
+            <article class="timeline-item" data-reveal>
+              <time>2019 - 2020</time>
+              <div>
+                <h3>Media, Advertising, and Strategy Roles</h3>
+                <p>Contributed to Luna Media, Zebra Technologies, CNN International / CNN TURK, and FCB ARTGROUP.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="education" class="section-band education-section" aria-labelledby="education-title">
+          <div class="section-heading" data-reveal>
+            <p class="section-kicker">Education & Signals</p>
+            <h2 id="education-title">Academic depth in games, art, software, AI, and data systems.</h2>
+          </div>
+
+          <div class="education-grid">
+            <article data-reveal>
+              <span>2025 - 2026</span>
+              <h3>MSc Computer Science</h3>
+              <p>Queen Mary University of London: programming, databases, data analytics, interactive systems, software engineering, AI risk, and security.</p>
+            </article>
+            <article data-reveal>
+              <span>2022 - 2025</span>
+              <h3>BA Video Games, Art and Design</h3>
+              <p>Royal Holloway University of London: game engines, immersive environments, 3D art, virtual production, VFX, storytelling, and mobile game design.</p>
+            </article>
+            <article data-reveal>
+              <span>2024 - 2025</span>
+              <h3>Certificates</h3>
+              <p>Bright Network Couch to Coder and Harvard CS50's Introduction to Artificial Intelligence with Python.</p>
+            </article>
+            <article data-reveal>
+              <span>Awards</span>
+              <h3>Merit Scholarships</h3>
+              <p>Royal Holloway Future International Leaders Scholarship and Queen Mary Global Talent Scholarship.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="contact" class="section-band contact-section" aria-labelledby="contact-title">
+          <div class="contact-copy" data-reveal>
+            <p class="section-kicker">Contact</p>
+            <h2 id="contact-title">Available for game development, technical art, and interactive design opportunities.</h2>
+            <p>
+              Based in Central London, with bilingual English and Turkish fluency and limited working proficiency in Spanish.
+            </p>
+          </div>
+
+          <div class="contact-panel" data-reveal>
+            <a href="mailto:alaca.serra@gmail.com">
+              <span>Email</span>
+              <strong>alaca.serra@gmail.com</strong>
+            </a>
+            <a href="https://www.linkedin.com/in/serra-alaca-a1081b22a" target="_blank" rel="noopener">
+              <span>LinkedIn</span>
+              <strong>serra-alaca-a1081b22a</strong>
+            </a>
+            <a href="https://github.com/Mucchun" target="_blank" rel="noopener">
+              <span>GitHub</span>
+              <strong>Mucchun</strong>
+            </a>
+            <a href="https://serraalaca6.artstation.com" target="_blank" rel="noopener">
+              <span>ArtStation</span>
+              <strong>serraalaca6</strong>
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>Serra Alaca</span>
+        <a href="#top">Back to top</a>
+      </footer>
+    </div>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>
