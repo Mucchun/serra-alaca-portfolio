@@ -2,6 +2,22 @@ const canvas = document.querySelector("#signal-canvas");
 const ctx = canvas.getContext("2d");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const palette = ["#6ef3ff", "#ff4ecd", "#d7ff5f", "#ffba57", "#ff7168"];
+const shouldStartAtTop = !window.location.hash;
+
+if ("scrollRestoration" in history) {
+  history.scrollRestoration = "manual";
+}
+
+if (shouldStartAtTop) {
+  window.scrollTo(0, 0);
+  window.addEventListener(
+    "load",
+    () => {
+      requestAnimationFrame(() => window.scrollTo(0, 0));
+    },
+    { once: true }
+  );
+}
 
 let width = 0;
 let height = 0;
