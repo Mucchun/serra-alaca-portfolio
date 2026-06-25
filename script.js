@@ -3,22 +3,42 @@ const ctx = canvas.getContext("2d");
 const webglCanvas = document.querySelector("#webgl-scene");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const palette = ["#66f6ff", "#93ffd8", "#d8ff5f", "#ffbc58", "#ff6d67", "#ff4ecd"];
-const shouldStartAtTop = !window.location.hash;
+const shouldStartAtTop = !window.location.hash || window.location.hash === "#top";
+
+function scrollToPageTop(behavior = "auto") {
+  window.scrollTo({ top: 0, left: 0, behavior });
+}
 
 if ("scrollRestoration" in history) {
   history.scrollRestoration = "manual";
 }
 
 if (shouldStartAtTop) {
-  window.scrollTo(0, 0);
+  scrollToPageTop();
   window.addEventListener(
     "load",
     () => {
-      requestAnimationFrame(() => window.scrollTo(0, 0));
+      requestAnimationFrame(() => scrollToPageTop());
     },
     { once: true }
   );
 }
+
+document.querySelectorAll('a[href="#top"]').forEach((link) => {
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (window.location.hash !== "#top") {
+      history.pushState(null, "", "#top");
+    }
+    scrollToPageTop(reduceMotion ? "auto" : "smooth");
+  });
+});
+
+window.addEventListener("hashchange", () => {
+  if (window.location.hash === "#top") {
+    requestAnimationFrame(() => scrollToPageTop());
+  }
+});
 
 let width = 0;
 let height = 0;
@@ -565,9 +585,9 @@ async function initThreeScene() {
       shadow.position.set(0.2, 0.127, -0.24);
       sundial.add(shadow);
 
-      sundial.position.set(1.72, -1.06, -0.42);
-      sundial.rotation.set(-0.22, -0.24, -0.12);
-      sundial.scale.setScalar(1.38);
+      sundial.position.set(2.48, -1.46, -5.16);
+      sundial.rotation.set(1.14, -0.12, -0.04);
+      sundial.scale.setScalar(0.58);
       sundial.userData = {
         baseY: sundial.position.y,
         baseRotationY: sundial.rotation.y

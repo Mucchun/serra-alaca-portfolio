@@ -24,6 +24,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 118px;
 }
 
 body {
@@ -300,6 +301,10 @@ h2,
 h3,
 p {
   margin-top: 0;
+}
+
+#top {
+  scroll-margin-top: 118px;
 }
 
 h1 {
@@ -968,6 +973,14 @@ h1 {
 }
 
 @media (max-width: 820px) {
+  html {
+    scroll-padding-top: 154px;
+  }
+
+  #top {
+    scroll-margin-top: 154px;
+  }
+
   .temple-side-columns {
     display: none;
   }
