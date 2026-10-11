@@ -2,7 +2,7 @@ const canvas = document.querySelector("#signal-canvas");
 const ctx = canvas.getContext("2d");
 const webglCanvas = document.querySelector("#webgl-scene");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const palette = ["#66f6ff", "#93ffd8", "#d8ff5f", "#ffbc58", "#ff6d67", "#ff4ecd"];
+const palette = ["#e3b471", "#d9c49a", "#c98a4b", "#86d7d2"];
 const shouldStartAtTop = !window.location.hash || window.location.hash === "#top";
 
 function scrollToPageTop(behavior = "auto") {
@@ -44,7 +44,6 @@ let width = 0;
 let height = 0;
 let ratio = 1;
 let nodes = [];
-let pointer = { x: 0, y: 0, active: false };
 let frame = 0;
 
 function resizeSignalCanvas() {
@@ -57,126 +56,58 @@ function resizeSignalCanvas() {
   canvas.style.height = `${height}px`;
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-  const targetCount = Math.min(116, Math.max(50, Math.floor((width * height) / 16000)));
+  const targetCount = Math.min(64, Math.max(28, Math.floor((width * height) / 30000)));
   nodes = Array.from({ length: targetCount }, (_, index) => ({
     x: Math.random() * width,
     y: Math.random() * height,
-    vx: (Math.random() - 0.5) * 0.34,
-    vy: (Math.random() - 0.5) * 0.34,
-    size: 1 + Math.random() * 2.2,
+    vx: (Math.random() - 0.5) * 0.1,
+    vy: -0.08 - Math.random() * 0.22,
+    size: 0.8 + Math.random() * 1.8,
     color: palette[index % palette.length],
     phase: Math.random() * Math.PI * 2
   }));
 }
 
-function drawDiamond(x, y, size, color, alpha) {
+function drawMote(x, y, size, color, alpha) {
   ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(Math.PI / 4);
   ctx.globalAlpha = alpha;
   ctx.fillStyle = color;
-  ctx.fillRect(-size / 2, -size / 2, size, size);
-  ctx.restore();
-}
-
-function drawRibbons(time) {
-  const bands = 7;
-  ctx.save();
-  ctx.globalCompositeOperation = "screen";
-  for (let i = 0; i < bands; i += 1) {
-    const y = (height / bands) * i + Math.sin(time * 0.001 + i) * 28;
-    const color = palette[(i + 1) % palette.length];
-    ctx.beginPath();
-    ctx.moveTo(-80, y);
-    for (let x = -80; x <= width + 80; x += 80) {
-      const wave = Math.sin(x * 0.008 + time * 0.0012 + i * 0.7) * (16 + i * 2);
-      ctx.lineTo(x, y + wave);
-    }
-    ctx.strokeStyle = color;
-    ctx.globalAlpha = 0.07;
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function drawConnections() {
-  ctx.save();
-  ctx.globalCompositeOperation = "screen";
-  const limit = width < 720 ? 88 : 122;
-
-  for (let i = 0; i < nodes.length; i += 1) {
-    const a = nodes[i];
-    for (let j = i + 1; j < nodes.length; j += 1) {
-      const b = nodes[j];
-      const distance = Math.hypot(a.x - b.x, a.y - b.y);
-
-      if (distance < limit) {
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
-        ctx.strokeStyle = a.color;
-        ctx.globalAlpha = (1 - distance / limit) * 0.18;
-        ctx.lineWidth = 0.8;
-        ctx.stroke();
-      }
-    }
-
-    if (pointer.active) {
-      const pointerDistance = Math.hypot(a.x - pointer.x, a.y - pointer.y);
-      if (pointerDistance < 170) {
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(pointer.x, pointer.y);
-        ctx.strokeStyle = "#f9fbff";
-        ctx.globalAlpha = (1 - pointerDistance / 170) * 0.2;
-        ctx.lineWidth = 0.9;
-        ctx.stroke();
-      }
-    }
-  }
+  ctx.beginPath();
+  ctx.arc(x, y, size, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = alpha * 0.22;
+  ctx.beginPath();
+  ctx.arc(x, y, size * 3.2, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 }
 
 function animateSignals(time = 0) {
   frame += 1;
   ctx.clearRect(0, 0, width, height);
-  drawRibbons(time);
 
   for (const node of nodes) {
-    const drift = Math.sin(time * 0.001 + node.phase) * 0.12;
-    node.x += reduceMotion ? 0 : node.vx + drift;
-    node.y += reduceMotion ? 0 : node.vy - drift;
+    const sway = Math.sin(time * 0.0007 + node.phase) * 0.14;
+    node.x += reduceMotion ? 0 : node.vx + sway;
+    node.y += reduceMotion ? 0 : node.vy;
 
     if (node.x < -20) node.x = width + 20;
     if (node.x > width + 20) node.x = -20;
-    if (node.y < -20) node.y = height + 20;
-    if (node.y > height + 20) node.y = -20;
+    if (node.y < -24) {
+      node.y = height + 20;
+      node.x = Math.random() * width;
+    }
 
-    const pulse = 0.56 + Math.sin(time * 0.003 + node.phase) * 0.18;
-    drawDiamond(node.x, node.y, node.size, node.color, reduceMotion ? 0.18 : pulse);
+    const pulse = 0.34 + Math.sin(time * 0.0018 + node.phase) * 0.16;
+    drawMote(node.x, node.y, node.size, node.color, reduceMotion ? 0.16 : pulse);
   }
-
-  drawConnections();
 
   if (!reduceMotion || frame < 2) {
     requestAnimationFrame(animateSignals);
   }
 }
 
-function syncPointer(event) {
-  pointer = {
-    x: event.clientX,
-    y: event.clientY,
-    active: true
-  };
-}
-
 window.addEventListener("resize", resizeSignalCanvas);
-window.addEventListener("pointermove", syncPointer);
-window.addEventListener("pointerleave", () => {
-  pointer.active = false;
-});
 
 resizeSignalCanvas();
 animateSignals();
@@ -196,12 +127,12 @@ async function initThreeScene() {
 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x03060a, 1);
+    renderer.setClearColor(0x06080f, 1);
     if (THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
     if (THREE.ACESFilmicToneMapping) renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
 
-    scene.fog = new THREE.FogExp2(0x05070d, 0.05);
+    scene.fog = new THREE.FogExp2(0x080a12, 0.05);
     const cameraBase = new THREE.Vector3(0, 0.24, 8.4);
     const lookAtTarget = new THREE.Vector3(0, -0.68, -4.5);
     camera.position.copy(cameraBase);
@@ -214,10 +145,10 @@ async function initThreeScene() {
     scene.add(world);
     world.add(temple, ruins, artStage, holoRig);
 
-    const ambient = new THREE.AmbientLight(0x7ea8bb, 0.55);
-    const keyLight = new THREE.DirectionalLight(0xffb15d, 3.1);
-    const rimLight = new THREE.PointLight(0x66f6ff, 16, 30);
-    const scanLight = new THREE.PointLight(0xd8ff5f, 7, 18);
+    const ambient = new THREE.AmbientLight(0x8a93a8, 0.5);
+    const keyLight = new THREE.DirectionalLight(0xf2a95c, 3.1);
+    const rimLight = new THREE.PointLight(0x86d7d2, 13, 30);
+    const scanLight = new THREE.PointLight(0xe3b471, 6, 18);
     keyLight.position.set(-3.8, 5.4, 5.2);
     rimLight.position.set(4.4, 1.8, 2.8);
     scanLight.position.set(-4.2, -0.9, -1.2);
@@ -230,24 +161,24 @@ async function initThreeScene() {
       roughness: 0.78
     });
     const edgeMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffbc58,
+      color: 0xe3b471,
       transparent: true,
-      opacity: 0.16,
+      opacity: 0.14,
       wireframe: true
     });
     const holoMaterial = new THREE.MeshStandardMaterial({
-      color: 0x7bf8ff,
-      emissive: 0x0d4650,
+      color: 0x86d7d2,
+      emissive: 0x0e3f44,
       metalness: 0.22,
       roughness: 0.34,
       transparent: true,
-      opacity: 0.42,
+      opacity: 0.4,
       wireframe: true
     });
     const glassMaterial = new THREE.MeshBasicMaterial({
-      color: 0x93ffd8,
+      color: 0x86d7d2,
       transparent: true,
-      opacity: 0.22,
+      opacity: 0.18,
       wireframe: true
     });
 
@@ -266,10 +197,10 @@ async function initThreeScene() {
     floor.position.set(0, -2.62, -5.4);
     world.add(floor);
 
-    const floorGrid = new THREE.GridHelper(28, 42, 0xffbc58, 0x284048);
+    const floorGrid = new THREE.GridHelper(28, 42, 0xe3b471, 0x25333a);
     floorGrid.position.set(0, -2.58, -5.4);
     floorGrid.material.transparent = true;
-    floorGrid.material.opacity = 0.24;
+    floorGrid.material.opacity = 0.18;
     world.add(floorGrid);
 
     function addFluting(columnGroup, radius, height, material) {
@@ -398,7 +329,7 @@ async function initThreeScene() {
       return texture;
     }
 
-    function createFrame(width, height, color = 0x66f6ff) {
+    function createFrame(width, height, color = 0x86d7d2) {
       const points = [
         new THREE.Vector3(-width / 2, -height / 2, 0),
         new THREE.Vector3(width / 2, -height / 2, 0),
@@ -419,7 +350,7 @@ async function initThreeScene() {
         height: 3.25,
         position: [-2.25, 0.22, -5.85],
         rotation: [0.05, 0.2, -0.01],
-        color: 0xffbc58
+        color: 0xe3b471
       },
       {
         src: "assets/artstation/character-model.webp",
@@ -427,7 +358,7 @@ async function initThreeScene() {
         height: 2.95,
         position: [3.32, 0.0, -3.55],
         rotation: [0.02, -0.58, 0.04],
-        color: 0x66f6ff
+        color: 0x86d7d2
       },
       {
         src: "assets/artstation/magical-tree.webp",
@@ -435,7 +366,7 @@ async function initThreeScene() {
         height: 2.9,
         position: [-4.5, -0.42, -2.9],
         rotation: [0.04, 0.72, -0.08],
-        color: 0xd8ff5f
+        color: 0xe3b471
       },
       {
         src: "assets/artstation/aether.jpg",
@@ -443,7 +374,7 @@ async function initThreeScene() {
         height: 1.75,
         position: [1.75, 1.55, -5.15],
         rotation: [-0.03, -0.35, 0.04],
-        color: 0xff4ecd
+        color: 0x86d7d2
       },
       {
         src: "assets/artstation/to-tartarus.jpg",
@@ -451,7 +382,7 @@ async function initThreeScene() {
         height: 2.0,
         position: [-0.45, -1.28, -2.45],
         rotation: [0.02, 0.14, -0.05],
-        color: 0xff6d67
+        color: 0xe3b471
       },
       {
         src: "assets/artstation/steampunk-device.webp",
@@ -459,7 +390,7 @@ async function initThreeScene() {
         height: 2.52,
         position: [4.62, -1.05, -5.25],
         rotation: [0.02, -0.78, 0.06],
-        color: 0x93ffd8
+        color: 0x86d7d2
       },
       {
         src: "assets/artstation/sundial.jpg",
@@ -467,7 +398,7 @@ async function initThreeScene() {
         height: 1.6,
         position: [-3.75, 1.24, -4.05],
         rotation: [-0.02, 0.54, -0.05],
-        color: 0xffbc58
+        color: 0xe3b471
       }
     ];
 
@@ -485,7 +416,7 @@ async function initThreeScene() {
       const backPlate = new THREE.Mesh(
         new THREE.PlaneGeometry(asset.width + 0.18, asset.height + 0.18),
         new THREE.MeshBasicMaterial({
-          color: 0x03060a,
+          color: 0x06080f,
           transparent: true,
           opacity: 0.5,
           side: THREE.DoubleSide
@@ -537,7 +468,7 @@ async function initThreeScene() {
 
       const rim = new THREE.Mesh(
         new THREE.TorusGeometry(0.99, 0.024, 8, 96),
-        new THREE.MeshBasicMaterial({ color: 0xffbc58, transparent: true, opacity: 0.5 })
+        new THREE.MeshBasicMaterial({ color: 0xe3b471, transparent: true, opacity: 0.5 })
       );
       rim.rotation.x = Math.PI / 2;
       rim.position.y = 0.105;
@@ -578,7 +509,7 @@ async function initThreeScene() {
 
       const shadow = new THREE.Mesh(
         new THREE.PlaneGeometry(0.82, 0.08),
-        new THREE.MeshBasicMaterial({ color: 0x03060a, transparent: true, opacity: 0.45, side: THREE.DoubleSide })
+        new THREE.MeshBasicMaterial({ color: 0x06080f, transparent: true, opacity: 0.45, side: THREE.DoubleSide })
       );
       shadow.rotation.x = -Math.PI / 2;
       shadow.rotation.z = -0.56;
@@ -602,7 +533,7 @@ async function initThreeScene() {
     for (let i = 0; i < 7; i += 1) {
       const scan = new THREE.Mesh(
         new THREE.PlaneGeometry(8.6, 0.012),
-        new THREE.MeshBasicMaterial({ color: 0x93ffd8, transparent: true, opacity: 0.13, side: THREE.DoubleSide })
+        new THREE.MeshBasicMaterial({ color: 0x86d7d2, transparent: true, opacity: 0.13, side: THREE.DoubleSide })
       );
       scan.position.set(-0.3, -1.45 + i * 0.52, -2.18);
       scan.rotation.y = 0.12;
@@ -752,6 +683,16 @@ async function initThreeScene() {
 }
 
 initThreeScene();
+
+function updateSceneDim() {
+  const fadeEnd = Math.max(window.innerHeight * 0.85, 1);
+  const dim = Math.min(1, Math.max(0, window.scrollY / fadeEnd));
+  document.documentElement.style.setProperty("--scene-dim", dim.toFixed(3));
+}
+
+window.addEventListener("scroll", updateSceneDim, { passive: true });
+window.addEventListener("resize", updateSceneDim);
+updateSceneDim();
 
 const revealObserver = new IntersectionObserver(
   (entries) => {
