@@ -588,6 +588,124 @@ async function initThreeScene() {
     figure.rotation.y = -0.56;
     holoRig.add(figure);
 
+    function createGlyphTexture() {
+      const glyphCanvas = document.createElement("canvas");
+      glyphCanvas.width = 128;
+      glyphCanvas.height = 256;
+      const glyphCtx = glyphCanvas.getContext("2d");
+      const glyphs = "ΑΒΓΔΘΛΞΠΣΦΨΩαβγδλμπ0123456789";
+      glyphCtx.font = "13px monospace";
+      for (let column = 0; column < 8; column += 1) {
+        for (let row = 0; row < 16; row += 1) {
+          const glyph = glyphs[Math.floor(Math.random() * glyphs.length)];
+          glyphCtx.fillStyle = Math.random() < 0.16
+            ? "rgba(227, 180, 113, 0.9)"
+            : `rgba(134, 215, 210, ${0.25 + Math.random() * 0.6})`;
+          glyphCtx.fillText(glyph, 6 + column * 15, 16 + row * 15);
+        }
+      }
+      const texture = new THREE.CanvasTexture(glyphCanvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      return texture;
+    }
+
+    const dataPanels = [];
+    [
+      { size: [0.62, 1.16], position: [3.62, 0.5, -2.35], rotation: [0, -0.5, 0] },
+      { size: [0.5, 0.94], position: [1.95, -0.42, -4.85], rotation: [0, -0.18, 0] },
+      { size: [0.7, 1.24], position: [-1.15, 2.2, -5.4], rotation: [0, 0.22, 0] }
+    ].forEach((config, index) => {
+      const texture = createGlyphTexture();
+      const panel = new THREE.Mesh(
+        new THREE.PlaneGeometry(config.size[0], config.size[1]),
+        new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 0.5,
+          side: THREE.DoubleSide,
+          depthWrite: false
+        })
+      );
+      panel.position.set(...config.position);
+      panel.rotation.set(...config.rotation);
+      panel.userData = { texture, baseY: config.position[1], phase: index * 1.7, speed: 0.016 + index * 0.007 };
+      artStage.add(panel);
+      dataPanels.push(panel);
+    });
+
+    function createArmillarySphere() {
+      const armillary = new THREE.Group();
+      const ringConfigs = [
+        { radius: 1.0, tube: 0.02, color: 0xe3b471, opacity: 0.6, axis: "z" },
+        { radius: 0.86, tube: 0.014, color: 0x86d7d2, opacity: 0.5, axis: "x" },
+        { radius: 0.7, tube: 0.014, color: 0x86d7d2, opacity: 0.42, axis: "y" },
+        { radius: 0.54, tube: 0.011, color: 0xe3b471, opacity: 0.5, axis: "x" }
+      ];
+      const rings = ringConfigs.map((config, index) => {
+        const pivot = new THREE.Group();
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(config.radius, config.tube, 10, 96),
+          new THREE.MeshBasicMaterial({ color: config.color, transparent: true, opacity: config.opacity })
+        );
+        if (index % 2 === 0) ring.rotation.x = Math.PI / 2;
+        pivot.add(ring);
+        pivot.userData = { axis: config.axis, speed: 0.1 + index * 0.07, direction: index % 2 === 0 ? 1 : -1 };
+        armillary.add(pivot);
+        return pivot;
+      });
+
+      const core = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(0.3, 1),
+        new THREE.MeshStandardMaterial({
+          color: 0xe3b471,
+          emissive: 0x5e3f1a,
+          metalness: 0.5,
+          roughness: 0.3,
+          wireframe: true,
+          transparent: true,
+          opacity: 0.85
+        })
+      );
+      armillary.add(core);
+
+      const axisRod = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.012, 0.012, 2.6, 8),
+        new THREE.MeshBasicMaterial({ color: 0xe3b471, transparent: true, opacity: 0.45 })
+      );
+      armillary.add(axisRod);
+
+      armillary.rotation.z = 0.41;
+      armillary.userData = { rings, core };
+      return armillary;
+    }
+
+    const armillary = createArmillarySphere();
+    armillary.position.set(5.15, 2.45, -5.1);
+    armillary.scale.setScalar(0.85);
+    armillary.userData.baseY = armillary.position.y;
+    world.add(armillary);
+
+    const scanRing = new THREE.Mesh(
+      new THREE.TorusGeometry(0.8, 0.012, 8, 64),
+      new THREE.MeshBasicMaterial({ color: 0x86d7d2, transparent: true, opacity: 0.4 })
+    );
+    scanRing.rotation.x = Math.PI / 2;
+    holoRig.add(scanRing);
+
+    const drone = new THREE.Group();
+    const droneBody = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.17, 0),
+      new THREE.MeshStandardMaterial({ color: 0xe3b471, emissive: 0x6b4a20, metalness: 0.6, roughness: 0.3 })
+    );
+    const droneShell = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.26, 0),
+      new THREE.MeshBasicMaterial({ color: 0x86d7d2, transparent: true, opacity: 0.3, wireframe: true })
+    );
+    const droneLight = new THREE.PointLight(0x86d7d2, 2.4, 6);
+    drone.add(droneBody, droneShell, droneLight);
+    world.add(drone);
+
     const particleCount = 420;
     const particlePositions = new Float32Array(particleCount * 3);
     for (let i = 0; i < particleCount; i += 1) {
@@ -660,6 +778,30 @@ async function initThreeScene() {
       figure.rotation.y = -0.56 + Math.sin(t * 0.65) * 0.38;
       figure.position.y = -0.98 + Math.sin(t * 0.9) * 0.05;
       holoRig.rotation.y = Math.sin(t * 0.34) * 0.08;
+
+      armillary.userData.rings.forEach((pivot) => {
+        pivot.rotation[pivot.userData.axis] = t * pivot.userData.speed * pivot.userData.direction;
+      });
+      armillary.userData.core.rotation.y = t * 0.3;
+      armillary.position.y = armillary.userData.baseY + Math.sin(t * 0.6 + 0.8) * 0.08;
+      armillary.rotation.y = t * 0.05;
+
+      dataPanels.forEach((panel) => {
+        panel.userData.texture.offset.y = (t * panel.userData.speed) % 1;
+        panel.position.y = panel.userData.baseY + Math.sin(t * 0.8 + panel.userData.phase) * 0.07;
+      });
+
+      scanRing.position.set(figure.position.x, -0.98 + Math.sin(t * 0.7) * 1.05, figure.position.z);
+      scanRing.material.opacity = 0.3 + Math.sin(t * 2.2) * 0.1;
+
+      const droneAngle = t * 0.14;
+      drone.position.set(
+        Math.cos(droneAngle) * 6.9,
+        2.75 + Math.sin(t * 0.8) * 0.18,
+        -4.6 + Math.sin(droneAngle) * 3.4
+      );
+      drone.rotation.y = t * 1.2;
+      drone.rotation.x = t * 0.8;
 
       renderer.render(scene, camera);
       window.__portfolioThreeReady = threeFrames > 3;
