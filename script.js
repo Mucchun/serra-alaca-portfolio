@@ -1,5 +1,8 @@
+const canvas = document.querySelector("#signal-canvas");
+const ctx = canvas.getContext("2d");
 const webglCanvas = document.querySelector("#webgl-scene");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const palette = ["#e3b471", "#d9c49a", "#c98a4b", "#86d7d2"];
 const shouldStartAtTop = !window.location.hash || window.location.hash === "#top";
 
 function scrollToPageTop(behavior = "auto") {
@@ -37,6 +40,77 @@ window.addEventListener("hashchange", () => {
   }
 });
 
+let width = 0;
+let height = 0;
+let ratio = 1;
+let nodes = [];
+let frame = 0;
+
+function resizeSignalCanvas() {
+  width = window.innerWidth;
+  height = window.innerHeight;
+  ratio = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.floor(width * ratio);
+  canvas.height = Math.floor(height * ratio);
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+  const targetCount = Math.min(64, Math.max(28, Math.floor((width * height) / 30000)));
+  nodes = Array.from({ length: targetCount }, (_, index) => ({
+    x: Math.random() * width,
+    y: Math.random() * height,
+    vx: (Math.random() - 0.5) * 0.1,
+    vy: -0.08 - Math.random() * 0.22,
+    size: 0.8 + Math.random() * 1.8,
+    color: palette[index % palette.length],
+    phase: Math.random() * Math.PI * 2
+  }));
+}
+
+function drawMote(x, y, size, color, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, size, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = alpha * 0.22;
+  ctx.beginPath();
+  ctx.arc(x, y, size * 3.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function animateSignals(time = 0) {
+  frame += 1;
+  ctx.clearRect(0, 0, width, height);
+
+  for (const node of nodes) {
+    const sway = Math.sin(time * 0.0007 + node.phase) * 0.14;
+    node.x += reduceMotion ? 0 : node.vx + sway;
+    node.y += reduceMotion ? 0 : node.vy;
+
+    if (node.x < -20) node.x = width + 20;
+    if (node.x > width + 20) node.x = -20;
+    if (node.y < -24) {
+      node.y = height + 20;
+      node.x = Math.random() * width;
+    }
+
+    const pulse = 0.34 + Math.sin(time * 0.0018 + node.phase) * 0.16;
+    drawMote(node.x, node.y, node.size, node.color, reduceMotion ? 0.16 : pulse);
+  }
+
+  if (!reduceMotion || frame < 2) {
+    requestAnimationFrame(animateSignals);
+  }
+}
+
+window.addEventListener("resize", resizeSignalCanvas);
+
+resizeSignalCanvas();
+animateSignals();
 
 async function initThreeScene() {
   window.__portfolioThreeStatus = "loading";
@@ -51,10 +125,9 @@ async function initThreeScene() {
       powerPreference: "high-performance"
     });
 
-    renderer.setClearColor(0x000000, 0);
-    webglCanvas.addEventListener("webglcontextlost", () => {
-      document.body.classList.add("three-fallback");
-    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x06080f, 1);
     if (THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
     if (THREE.ACESFilmicToneMapping) renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
@@ -657,28 +730,20 @@ async function initThreeScene() {
       targetRotation.x = pointerShift.y * 0.08;
     });
 
-    // The scene lives in the hero stage, so it sizes to its canvas rather than the window.
-    // The field of view widens as the stage narrows so the composition keeps its width.
     function resizeThree() {
-      const stageWidth = webglCanvas.clientWidth || window.innerWidth;
-      const stageHeight = webglCanvas.clientHeight || window.innerHeight;
-      const narrow = window.innerWidth < 720;
-      const aspect = stageWidth / stageHeight;
-      cameraBase.z = narrow ? 10.1 : 8.4;
-      cameraBase.y = narrow ? 0.08 : 0.24;
-      camera.fov = Math.min(60, Math.max(43, THREE.MathUtils.radToDeg(2 * Math.atan(0.63 / aspect))));
-      camera.aspect = aspect;
+      cameraBase.z = window.innerWidth < 720 ? 10.1 : 8.4;
+      cameraBase.y = window.innerWidth < 720 ? 0.08 : 0.24;
+      camera.fov = window.innerWidth < 720 ? 49 : 43;
+      camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      renderer.setSize(stageWidth, stageHeight, false);
+      renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    let threeFrames = 0;
-    let frameRequest = 0;
-    let sceneVisible = true;
+    window.addEventListener("resize", resizeThree);
 
+    let threeFrames = 0;
     function renderThree(time = 0) {
-      frameRequest = 0;
       threeFrames += 1;
       const t = time * 0.001;
 
@@ -744,29 +809,10 @@ async function initThreeScene() {
       window.__portfolioThreeStatus = "rendering";
       window.__portfolioSceneAssetCount = panels.length + 1;
 
-      if ((!reduceMotion || threeFrames < 4) && sceneVisible && !document.hidden) {
-        frameRequest = requestAnimationFrame(renderThree);
+      if (!reduceMotion || threeFrames < 4) {
+        requestAnimationFrame(renderThree);
       }
     }
-
-    // Stop drawing when the hero is scrolled away or the tab is hidden.
-    function wakeScene(force = false) {
-      if (frameRequest || !sceneVisible || document.hidden) return;
-      if (reduceMotion && !force) return;
-      frameRequest = requestAnimationFrame(renderThree);
-    }
-
-    new IntersectionObserver(([entry]) => {
-      sceneVisible = entry.isIntersecting;
-      wakeScene();
-    }).observe(webglCanvas);
-    document.addEventListener("visibilitychange", () => wakeScene());
-    new ResizeObserver(() => {
-      resizeThree();
-      wakeScene(true);
-    }).observe(webglCanvas);
-    // With reduced motion the loop stops early, so redraw once the artwork has loaded.
-    THREE.DefaultLoadingManager.onLoad = () => wakeScene(true);
 
     resizeThree();
     renderThree();
@@ -780,6 +826,30 @@ async function initThreeScene() {
 
 initThreeScene();
 
+function updateSceneDim() {
+  const fadeEnd = Math.max(window.innerHeight * 0.85, 1);
+  const dim = Math.min(1, Math.max(0, window.scrollY / fadeEnd));
+  document.documentElement.style.setProperty("--scene-dim", dim.toFixed(3));
+}
+
+window.addEventListener("scroll", updateSceneDim, { passive: true });
+window.addEventListener("resize", updateSceneDim);
+updateSceneDim();
+
+const revealObserver = new IntersectionObserver(
+  (entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
+        revealObserver.unobserve(entry.target);
+      }
+    }
+  },
+  { threshold: 0.18 }
+);
+
+document.querySelectorAll("[data-reveal]").forEach((element) => revealObserver.observe(element));
+
 const navLinks = Array.from(document.querySelectorAll(".nav-links a"));
 const sections = navLinks
   .map((link) => document.querySelector(link.getAttribute("href")))
@@ -787,57 +857,35 @@ const sections = navLinks
 
 const navObserver = new IntersectionObserver(
   (entries) => {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      navLinks.forEach((link) => {
-        const isActive = link.getAttribute("href") === `#${entry.target.id}`;
-        link.classList.toggle("is-active", isActive);
-        if (isActive) link.setAttribute("aria-current", "true");
-        else link.removeAttribute("aria-current");
-      });
-    }
+    const active = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+    if (!active) return;
+
+    navLinks.forEach((link) => {
+      const isActive = link.getAttribute("href") === `#${active.target.id}`;
+      link.classList.toggle("is-active", isActive);
+    });
   },
-  // A thin band a third of the way down the viewport decides which section is current.
-  { rootMargin: "-35% 0px -60% 0px" }
+  {
+    rootMargin: "-30% 0px -52% 0px",
+    threshold: [0.12, 0.3, 0.6]
+  }
 );
 
 sections.forEach((section) => navObserver.observe(section));
 
-// Artwork viewer: each gallery link opens its full image in a dialog.
-const lightbox = document.querySelector("#lightbox");
-const galleryLinks = Array.from(document.querySelectorAll("[data-lightbox]"));
-
-if (lightbox && typeof lightbox.showModal === "function") {
-  const lightboxImage = lightbox.querySelector("img");
-  const lightboxCaption = lightbox.querySelector(".lightbox-caption");
-  let currentIndex = 0;
-
-  function showArtwork(index) {
-    currentIndex = (index + galleryLinks.length) % galleryLinks.length;
-    const link = galleryLinks[currentIndex];
-    const thumbnail = link.querySelector("img");
-    lightboxImage.src = link.getAttribute("href");
-    lightboxImage.alt = thumbnail ? thumbnail.alt : "";
-    lightboxCaption.textContent = `${link.dataset.title} (${currentIndex + 1} of ${galleryLinks.length})`;
-  }
-
-  galleryLinks.forEach((link, index) => {
-    link.addEventListener("click", (event) => {
-      if (event.metaKey || event.ctrlKey || event.shiftKey) return;
-      event.preventDefault();
-      showArtwork(index);
-      lightbox.showModal();
-    });
+document.querySelectorAll(".project-card").forEach((card) => {
+  card.addEventListener("pointermove", (event) => {
+    if (reduceMotion) return;
+    const rect = card.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
+    card.style.transform = `translateY(-4px) rotateX(${y * -2}deg) rotateY(${x * 2}deg)`;
   });
 
-  lightbox.querySelector(".lightbox-close").addEventListener("click", () => lightbox.close());
-  lightbox.querySelector(".lightbox-prev").addEventListener("click", () => showArtwork(currentIndex - 1));
-  lightbox.querySelector(".lightbox-next").addEventListener("click", () => showArtwork(currentIndex + 1));
-  lightbox.addEventListener("click", (event) => {
-    if (event.target === lightbox) lightbox.close();
+  card.addEventListener("pointerleave", () => {
+    card.style.transform = "";
   });
-  lightbox.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowLeft") showArtwork(currentIndex - 1);
-    if (event.key === "ArrowRight") showArtwork(currentIndex + 1);
-  });
-}
+});
