@@ -876,7 +876,8 @@ const navObserver = new IntersectionObserver(
 
 sections.forEach((section) => navObserver.observe(section));
 
-document.querySelectorAll(".project-card").forEach((card) => {
+// The featured card holds a video player, so it stays still under the pointer.
+document.querySelectorAll(".project-card:not(.project-feature)").forEach((card) => {
   card.addEventListener("pointermove", (event) => {
     if (reduceMotion) return;
     const rect = card.getBoundingClientRect();
